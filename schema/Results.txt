@@ -1,0 +1,5 @@
+[(LCallPark){
+   _uuid = "{E194EFEF-0E99-FCF5-8599-B6E80DC97DE1}"
+   pattern = "0122"
+   description = "test-call-park"
+ }]
