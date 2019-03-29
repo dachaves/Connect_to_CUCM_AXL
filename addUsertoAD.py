@@ -19,38 +19,40 @@ OrgUnit = 'OU=CUCMUsers,DC=dachaveslab,DC=net'
 
 user = 'test6'
 userpwd = 'C1sco123'
+mgr = 'CN=Luis Alvarez,OU=CUCMUsers,DC=dachaveslab,DC=net'
 user_attributes = {
     'givenname':'Alonso',
     'sn':'perez',
     'displayName':'Alonso Perez',
     'title':'Cisco NCE',
     'department':'Engineering',
-    'company':'CRG'
+    'company':'CRG',
+    'manager':mgr
     }
 
 
+def create_user(user):
+    print ('creating new user')
+    try:
+        new_user = pyad.aduser.ADUser.create(user, ou, password=userpwd, optional_attributes=user_attributes)
+        print (str(new_user) + 'was created succesfully !!! \n ------------------------- ')
+        return new_user
+
+    except Exception as error:
+        print ('operation failure - error ' + str (error))
+        return False
 
 
 
 def force_pwd_change(new_user):
-    print('forcing the pwd change on login')
+
     try:
         fcd_pwd = pyad.aduser.ADUser.force_pwd_change_on_login(new_user)
         print ('user set to change password succesfully')
+        return True
     except  Exception as error:
         print ('operation failure - error ' + str (error))
-
-
-
-def set_managed_by(new_user):
-    print('forcing managed by')
-    mgr = 'CN=Luis Alvarez,OU=CUCMUsers,DC=dachaveslab,DC=net'
-    try:
-        mgd_by = pyad.adobject.ADObject.set_managedby(new_user,mgr)
-        print ('manager assigned succesfully')
-    except  Exception as error:
-        print ('operation failure - error ' + str (error))
-
+        return False
 
 
 if __name__ == '__main__':
@@ -65,19 +67,10 @@ if __name__ == '__main__':
     print ('defining the OU')
     ou = pyad.adcontainer.ADContainer.from_dn(OrgUnit)
 
-
-    print ('creating new user')
-    try:
-        new_user = pyad.aduser.ADUser.create(user, ou, password=userpwd, optional_attributes=user_attributes)
-        print (str(new_user) + 'was created succesfully')
-
-    except Exception as error:
-        print ('operation failure - error ' + str (error))
-
-    #force_pwd_change(new_user)
-    set_managed_by(new_user)
-
-
-
+    new_user = create_user(user)
+    if new_user == False:
+        print ('unable to create user')
+    else:
+        force_pwd_change(new_user)
 
 
