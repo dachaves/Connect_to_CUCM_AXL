@@ -8,6 +8,7 @@ from pyad import adquery
 from pyad import adobject
 from pyad import pyadutils
 from pyad.adobject import ADObject
+from pyad import adgroup
 
 
 #list of items needed:
@@ -17,13 +18,13 @@ ADpassword = 'C1sco123'
 OrgUnit = 'OU=CUCMUsers,DC=dachaveslab,DC=net'
 
 
-user = 'test6'
+user = 'test7'
 userpwd = 'C1sco123'
 mgr = 'CN=Luis Alvarez,OU=CUCMUsers,DC=dachaveslab,DC=net'
 user_attributes = {
-    'givenname':'Alonso',
-    'sn':'perez',
-    'displayName':'Alonso Perez',
+    'givenname':'Daniel',
+    'sn':'Chaves',
+    'displayName':'Daniel Chaves',
     'title':'Cisco NCE',
     'department':'Engineering',
     'company':'CRG',
@@ -32,6 +33,10 @@ user_attributes = {
 
 
 def create_user(user):
+    '''
+    This function creates the user using the create function within
+    the ADUser class from pyad
+    '''
     print ('creating new user')
     try:
         new_user = pyad.aduser.ADUser.create(user, ou, password=userpwd, optional_attributes=user_attributes)
@@ -42,10 +47,23 @@ def create_user(user):
         print ('operation failure - error ' + str (error))
         return False
 
+def check_if_user_exists(userlookup):
+    print ('checking if user exists')
+    try:
+        q = pyad.adgroup.ADGroup.from_dn(userlookup)
+        print ('User ID already exists')
+        return False
+
+    except Exception as error:
+        print ('user does not exist')
+        return True
 
 
 def force_pwd_change(new_user):
-
+    '''
+    This function forces the user to change the password on login calling the
+    force_pwd_change_on_login function
+    '''
     try:
         fcd_pwd = pyad.aduser.ADUser.force_pwd_change_on_login(new_user)
         print ('user set to change password succesfully')
@@ -64,13 +82,17 @@ if __name__ == '__main__':
 
     pyad.set_defaults(ldap_server=ad, username=ADusername, password=ADpassword)
 
-    print ('defining the OU')
     ou = pyad.adcontainer.ADContainer.from_dn(OrgUnit)
 
-    new_user = create_user(user)
-    if new_user == False:
-        print ('unable to create user')
+    userlookup = ('CN=' + user + ',' +OrgUnit)
+
+    if check_if_user_exists(userlookup)== True:
+        new_user = create_user(user)
+        if new_user == False:
+            print ('unable to create user')
+        else:
+            force_pwd_change(new_user)
     else:
-        force_pwd_change(new_user)
+        print ('user not created')
 
 
